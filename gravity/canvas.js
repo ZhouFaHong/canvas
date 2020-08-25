@@ -1,4 +1,4 @@
-const canvas = document.getElementById('canvas');
+const canvas = document.querySelector('canvas');
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
@@ -62,7 +62,6 @@ let colorArray = [
     '#4682B4'
 ];
 
-
 window.addEventListener('mousemove',function(event){
     
     mouse.x = event.x;
@@ -73,73 +72,88 @@ window.addEventListener('mousemove',function(event){
 window.addEventListener('resize',function(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+});
+
+window.addEventListener('click',function(){
+    // 开启动画
     init();
 })
 
 
+
+
+// utility
+function randomIntFromRange(min,max){
+    return Math.floor(Math.random()*(max-min+1)+min)
+}
+function randomColor(colors) {
+    return colors[Math.floor(Math.random()*colors.length)];
+}
+
+let gravity = 1;
+let friction = 0.99;
+
 // 圆形类
-function Circle(x,y,dx,dy,radius){
+function Ball(x,y,dx,dy,radius,color){
     this.x = x;
     this.y = y;
     this.dx = dx;
     this.dy = dy;
     this.radius = radius;
-    this.minRadius = radius;
-    this.color = colorArray[Math.floor(Math.random()*colorArray.length)];
+    this.color = color;
     this.draw = function(){
         c.beginPath();
         c.arc(this.x,this.y,this.radius,0,Math.PI * 2,false);
-        c.strokeStyle = 'blue';
-        // c.stroke();
+        c.stroke();
         c.fill();
         c.fillStyle = this.color;
+        c.closePath();
     }
 
     this.update = function () {
-        if (this.x+this.radius > innerWidth || this.x-this.radius < 0){
+        if(this.y + this.radius + this.dy > canvas.height){
+            this.dy = -this.dy * friction;
+        }else{
+            this.dy += gravity;
+            // console.log(this.dy);
+        }
+
+        if (this.x + this.radius + this.dx>canvas.width || this.x - radius<=0) {
             this.dx = -this.dx;
         }
-    
-        if (this.y+this.radius > innerHeight || this.y-this.radius < 0){
-            this.dy = -this.dy;
-        }
-    
+
+
+
         this.x += this.dx;
         this.y += this.dy;
-
-        // interactivity
-        if(mouse.x-this.x<50 && mouse.x-this.x>-50&&mouse.y-this.y<50 && mouse.y-this.y>-50){
-            if (this.radius < maxRadius) {
-                this.radius += 1;
-            }
-        } else if(this.radius > this.minRadius){
-            this.radius -= 1;
-        }
         this.draw();
     }
 }
 
 /// 制造100个圆
-let circleArray;
-console.log(circleArray);
-
+let ballArray;
+let ball;
 function init (){
-    circleArray = [];
-    for (let index = 0; index < 1000; index++) {
-        let radius = Math.random()*5+1; // 半径
-        let x = Math.random() * (window.innerWidth -2*radius)+radius;
-        let y = Math.random() * (window.innerHeight -2*radius)+radius;
-        let dx = (Math.random()-0.5);
-        let dy = (Math.random()-0.5);
-        circleArray.push(new Circle(x,y,dx,dy,radius));
+    ballArray = [];
+    for (let index = 0; index < 500; index++) {
+        let radius = randomIntFromRange(8,30);
+        let x = randomIntFromRange(radius,canvas.width - radius);
+        let y = randomIntFromRange(0,canvas.height - radius);
+        let dx = randomIntFromRange(-2,2);
+        let dy = randomIntFromRange(-2,2);
+        ballArray.push(new Ball(x,y,dx,dy,radius,randomColor(colorArray)));
     }
+    console.log(ballArray);
 }
 // 动画制作
 function animate() {
-    c.clearRect(0,0,innerWidth,innerHeight);
     requestAnimationFrame(animate);
-    for (let index = 0; index < circleArray.length; index++) {
-        circleArray[index].update();
+    c.clearRect(0,0,innerWidth,innerHeight);
+    // c.fillText('Hello world!',mouse.x,mouse.y)
+    // ball.update();
+    for (let index = 0; index < ballArray.length; index++) {
+        ballArray[index].update();
+        
     }
 }
 init();
